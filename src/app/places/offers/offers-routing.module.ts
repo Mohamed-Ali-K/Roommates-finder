@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: OffersPage
+  },
+  {
+    path: 'new-offer',
+    loadChildren: () => import('./new-offer/new-offer.module').then( m => m.NewOfferPageModule)
   }
 ];
 
