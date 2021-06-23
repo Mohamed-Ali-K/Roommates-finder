@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private _userIsAuthenticade = false;
+  private _userIsAuthenticade = true;
 
   get userIsAuthenticated() {
     return this._userIsAuthenticade;
