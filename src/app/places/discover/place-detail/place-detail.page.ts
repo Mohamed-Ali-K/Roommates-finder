@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ModalController, NavController } from '@ionic/angular';
+import {
+  ActionSheetController,
+  ModalController,
+  NavController,
+} from '@ionic/angular';
 
 import { PlacesService } from '../../places.service';
 import { Place } from '../../place.model';
@@ -18,7 +22,8 @@ export class PlaceDetailPage implements OnInit {
     private navCtrl: NavController,
     private route: ActivatedRoute,
     private placesService: PlacesService,
-    private modelCtrl: ModalController
+    private modelCtrl: ModalController,
+    private actionSheetCtrl: ActionSheetController
   ) {}
 
   ngOnInit() {
@@ -35,6 +40,35 @@ export class PlaceDetailPage implements OnInit {
     // this.router.navigateByUrl('/places/tabs/discover');
     // this.navCtrl.navigateBack('/places/tabs/discover');
     // this.navCtrl.pop();
+    this.actionSheetCtrl
+      .create({
+        header: 'Choose an Action',
+        buttons: [
+          {
+            text: 'Select Date',
+            handler: () => {
+              this.openBookingModel('select');
+            },
+          },
+          {
+            text: 'Random Date',
+            handler: () => {
+              this.openBookingModel('randome');
+            },
+          },
+          {
+            text: 'Cancel',
+            role: 'cancel',
+          },
+        ],
+      })
+      .then((actionSheetEl) => {
+        actionSheetEl.present();
+      });
+  }
+
+  openBookingModel(mode: 'select' | 'randome') {
+    console.log(mode);
     this.modelCtrl
       .create({
         component: CreatBookingComponent,
@@ -43,11 +77,12 @@ export class PlaceDetailPage implements OnInit {
       .then((modalEl) => {
         modalEl.present();
         return modalEl.onDidDismiss();
-      }).then(resultData => {
+      })
+      .then((resultData) => {
         console.log(resultData.data, resultData.role);
         if (resultData.role === 'confirm') {
           console.log('booked');
         }
-      } ) ;
+      });
   }
 }
