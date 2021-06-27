@@ -45,7 +45,7 @@ export class NewOfferPage implements OnInit {
       this.form.value.description,
       +this.form.value.price,
       new Date(this.form.value.dateFrom),
-      new Date(this.form.value.dateFrom)
+      new Date(this.form.value.dateTo)
     );
     this.form.reset();
     this.route.navigate(['/places/tabs/offers']);

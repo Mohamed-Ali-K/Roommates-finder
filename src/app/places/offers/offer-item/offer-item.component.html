@@ -1,15 +1,15 @@
-<ion-item >
+<ion-item>
   <ion-thumbnail slot="start">
     <ion-img [src]="offer.imageUrl"></ion-img>
   </ion-thumbnail>
   <ion-label>
     <h1>{{ offer.title }}</h1>
-    <div class="offer-detail" >
-      <ion-icon color="secondary" name="calendar" class="space-left" ></ion-icon>
-      <ion-text color="primary" class="space-left" >{{ getDummyDate() | date }} </ion-text>
-      <span class="space-left" > to</span>
+    <div class="offer-detail">
       <ion-icon color="secondary" name="calendar" class="space-left"></ion-icon>
-      <ion-text color="primary" class="space-left" >{{ getDummyDate() | date }}</ion-text>
+      <ion-text color="primary" class="space-left">{{ offer.avilableFrom| date }} </ion-text>
+      <span class="space-left"> to</span>
+      <ion-icon color="secondary" name="calendar" class="space-left"></ion-icon>
+      <ion-text color="primary" class="space-left">{{ offer.avilableTo | date }}</ion-text>
     </div>
   </ion-label>
 </ion-item>

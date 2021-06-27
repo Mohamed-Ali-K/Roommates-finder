@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
 })
 export class OffersPage implements OnInit, OnDestroy {
   offers: Place[];
-  placesSub: Subscription;
+  private placesSub: Subscription;
   constructor(private placesService: PlacesService, private router: Router) {}
 
   ngOnInit() {
@@ -29,6 +29,8 @@ export class OffersPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.placesSub.unsubscribe();
+    if (this.placesSub) {
+      this.placesSub.unsubscribe();
+    }
   }
 }
