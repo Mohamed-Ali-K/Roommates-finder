@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
-import { take, map, tap, delay } from 'rxjs/operators';
+import { take, map, tap, delay, switchMap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root',
 })
@@ -42,7 +43,18 @@ export class PlacesService {
   get places() {
     return this._places.asObservable();
   }
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private http: HttpClient) {}
+  fetchPlaces() {
+    return this.http
+      .get(
+        'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json'
+      )
+      .pipe(
+        map(resData => {
+          
+        }))
+      );
+  }
 
   getPlace(id: string) {
     return this.places.pipe(
@@ -59,6 +71,7 @@ export class PlacesService {
     fromDate: Date,
     toDate: Date
   ) {
+    let genratedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
@@ -69,13 +82,29 @@ export class PlacesService {
       toDate,
       this.authService.userId
     );
-    return this.places.pipe(
-      take(1),
-      delay(1000),
-      tap((places) => {
-        this._places.next(places.concat(newPlace));
-      })
-    );
+    return this.http
+      .post<{ name: string }>(
+        'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json',
+        { ...newPlace, id: null }
+      )
+      .pipe(
+        switchMap((resData) => {
+          genratedId = resData.name;
+          return this.places;
+        }),
+        take(1),
+        tap((places) => {
+          newPlace.id = genratedId;
+          this._places.next(places.concat(newPlace));
+        })
+      );
+    // return this.places.pipe(
+    //   take(1),
+    //   delay(1000),
+    //   tap((places) => {
+    //     this._places.next(places.concat(newPlace));
+    //   })
+    // );
   }
   updatePlace(placeId: string, title: string, description: string) {
     return this.places.pipe(
