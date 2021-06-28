@@ -139,12 +139,12 @@ export class PlacesService {
     // );
   }
   updatePlace(placeId: string, title: string, description: string) {
+    let updatesplaces: Place[];
     return this.places.pipe(
       take(1),
-      delay(1000),
-      tap((places) => {
+      switchMap((places) => {
         const updatePlaceIndex = places.findIndex((pl) => pl.id === placeId);
-        const updatesplaces = [...places];
+        updatesplaces = [...places];
         const oldPlace = updatesplaces[updatePlaceIndex];
         updatesplaces[updatePlaceIndex] = new Place(
           oldPlace.id,
@@ -156,6 +156,12 @@ export class PlacesService {
           oldPlace.avilableTo,
           oldPlace.userId
         );
+        return this.http.put(
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${placeId}.json`,
+          { ...updatesplaces[updatePlaceIndex], id: null }
+        );
+      }),
+      tap(() => {
         this._places.next(updatesplaces);
       })
     );
