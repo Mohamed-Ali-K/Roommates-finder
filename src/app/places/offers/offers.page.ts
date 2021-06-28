@@ -27,7 +27,9 @@ export class OffersPage implements OnInit, OnDestroy {
     this.router.navigate(['/', 'places', 'tabs', 'offers', 'edit', offerId]);
     console.log('Editing item', offerId);
   }
-
+  ionViewWillEnter() {
+    this.placesService.fetchPlaces().subscribe();
+  }
   ngOnDestroy() {
     if (this.placesSub) {
       this.placesSub.unsubscribe();

@@ -4,6 +4,17 @@ import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+
+interface PlaceData {
+  avilableFrom: string;
+  avilableTo: string;
+  description: string;
+  imageUrl: string;
+  price: number;
+  title: string;
+  userId: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -46,13 +57,33 @@ export class PlacesService {
   constructor(private authService: AuthService, private http: HttpClient) {}
   fetchPlaces() {
     return this.http
-      .get(
+      .get<{ [key: string]: PlaceData }>(
         'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json'
       )
       .pipe(
-        map(resData => {
-          
-        }))
+        map((resData) => {
+          const places = [];
+          for (const key in resData) {
+            if (resData.hasOwnProperty(key)) {
+              places.push(
+                new Place(
+                  key,
+                  resData[key].title,
+                  resData[key].description,
+                  resData[key].imageUrl,
+                  resData[key].price,
+                  new Date(resData[key].avilableFrom),
+                  new Date(resData[key].avilableTo),
+                  resData[key].userId
+                )
+              );
+            }
+          }
+          return places;
+        }),
+        tap((places) => {
+          this._places.next(places);
+        })
       );
   }
 
