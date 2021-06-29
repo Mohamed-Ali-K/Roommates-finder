@@ -89,12 +89,25 @@ export class PlacesService {
   }
 
   getPlace(id: string) {
-    return this.places.pipe(
-      take(1),
-      map((places) => {
-        return { ...places.find((p) => p.id === id) };
-      })
-    );
+    return this.http
+      .get<PlaceData>(
+        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${id}.json`
+      )
+      .pipe(
+        map(
+          (placeData) =>
+            new Place(
+              id,
+              placeData.title,
+              placeData.description,
+              placeData.imageUrl,
+              placeData.price,
+              new Date(placeData.avilableFrom),
+              new Date(placeData.avilableTo),
+              placeData.userId
+            )
+        )
+      );
   }
   addPlace(
     title: string,
