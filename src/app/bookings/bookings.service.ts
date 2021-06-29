@@ -71,13 +71,17 @@ export class BookingService {
   }
 
   cancelBooking(bookingId: string) {
-    return this.bookings.pipe(
-      take(1),
-      delay(1000),
-      tap((bookings) => {
-        this._bookings.next(bookings.filter((b) => b.id !== bookingId));
-      })
-    );
+    return this.http
+      .delete(
+        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings/${bookingId}.json`
+      )
+      .pipe(
+        switchMap(() => this.bookings),
+        take(1),
+        tap((bookings) => {
+          this._bookings.next(bookings.filter((b) => b.id !== bookingId));
+        })
+      );
   }
   fetchBookings() {
     return this.http
