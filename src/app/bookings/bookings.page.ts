@@ -8,27 +8,38 @@ import { Booking } from './booking.model';
 @Component({
   selector: 'app-bookings',
   templateUrl: './bookings.page.html',
-  styleUrls: ['./bookings.page.scss']
+  styleUrls: ['./bookings.page.scss'],
 })
 export class BookingsPage implements OnInit, OnDestroy {
   loadedBookings: Booking[];
+  isLoading = false;
   private bookingSub: Subscription;
 
-  constructor(private bookingService: BookingService, private loadinCtrl: LoadingController) {}
+  constructor(
+    private bookingService: BookingService,
+    private loadinCtrl: LoadingController
+  ) {}
 
   ngOnInit() {
-    this.bookingService.bookings.subscribe(bookings => {
+    this.bookingService.bookings.subscribe((bookings) => {
       this.loadedBookings = bookings;
     });
   }
-
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.bookingService.fetchBookings().subscribe(() => {
+      this.isLoading = false;
+    });
+  }
   onCancelBooking(bookingId: string, slidingEl: IonItemSliding) {
     slidingEl.close();
-    this.loadinCtrl.create({message: 'Canceling Booking...'}).then(loadingEl =>{
-      loadingEl.present();
-      this.bookingService.cancelBooking(bookingId).subscribe();
-      loadingEl.dismiss();
-    });
+    this.loadinCtrl
+      .create({ message: 'Canceling Booking...' })
+      .then((loadingEl) => {
+        loadingEl.present();
+        this.bookingService.cancelBooking(bookingId).subscribe();
+        loadingEl.dismiss();
+      });
   }
 
   ngOnDestroy() {

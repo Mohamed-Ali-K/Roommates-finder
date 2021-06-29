@@ -10,14 +10,33 @@
 <ion-content>
   <ion-grid>
     <ion-row>
-      <ion-col size-md="6" offset-md="3" *ngIf="!loadedBookings || loadedBookings.length <= 0">
-        <p>
-          No Booking founds  (°_°).
-        </p>
+      <ion-col
+        class="ion-text-center ion-padding"
+        size-md="6"
+        offset-md="3"
+        *ngIf="isLoading"
+      >
+        <ion-spinner color="primary"></ion-spinner>
       </ion-col>
-      <ion-col size-md="6" offset-md="3" *ngIf="loadedBookings && loadedBookings.length > 0" >
+      <ion-col
+        class="ion-text-center ion-padding"
+        size-md="6"
+        offset-md="3"
+        *ngIf="!isLoading && (!loadedBookings || loadedBookings.length <= 0)"
+      >
+        <p>No Booking founds (°_°).</p>
+      </ion-col>
+      <ion-col
+        class="ion-text-center ion-padding"
+        size-md="6"
+        offset-md="3"
+        *ngIf="!isLoading && loadedBookings && loadedBookings.length > 0"
+      >
         <ion-list>
-          <ion-item-sliding *ngFor="let booking of loadedBookings" #slidingBooking>
+          <ion-item-sliding
+            *ngFor="let booking of loadedBookings"
+            #slidingBooking
+          >
             <ion-item>
               <ion-label>
                 <h5>{{ booking.placeTitle }}</h5>
@@ -25,7 +44,10 @@
               </ion-label>
             </ion-item>
             <ion-item-options>
-              <ion-item-option color="danger" (click)="onCancelBooking(booking.id, slidingBooking)">
+              <ion-item-option
+                color="danger"
+                (click)="onCancelBooking(booking.id, slidingBooking)"
+              >
                 <ion-icon name="trash" slot="icon-only"></ion-icon>
               </ion-item-option>
             </ion-item-options>
