@@ -1,3 +1,11 @@
-<p>
-  map-modal works!
-</p>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Pick Loaction</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onCancel()" color="primary"> Cancel </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <div class="map" #map></div>
+</ion-content>
