@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { map } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { PlaceLocation } from 'src/app/places/loaction.model';
 import { environment } from 'src/environments/environment';
 import { MapModalComponent } from '../../map-modal/map-modal.component';
 
@@ -21,9 +23,24 @@ export class LocationPickerComponent implements OnInit {
         if (!modalData.data) {
           return;
         }
-        this.getAdress(modalData.data.lat, modalData.data.lng).subscribe(
-          () => {}
-        );
+        const pickedLocation: PlaceLocation = {
+          lat: modalData.data.lat,
+          lng: modalData.data.lng,
+          address: null,
+          staticMapImagUrl: null,
+        };
+        this.getAdress(modalData.data.lat, modalData.data.lng)
+          .pipe(
+            switchMap((address) => {
+              pickedLocation.address = address;
+              return of(
+                this.getMapImage(pickedLocation.lat, pickedLocation.lng, 14)
+              );
+            })
+          )
+          .subscribe((staticMapImagUrl) => {
+            pickedLocation.staticMapImagUrl = staticMapImagUrl;
+          });
       });
       modalEl.present();
     });
@@ -38,5 +55,10 @@ export class LocationPickerComponent implements OnInit {
           console.log(geoData);
         })
       );
+  }
+  private getMapImage(lat: nuumber, lng: number, zoom: number) {
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=500x300&maptype=roadmap
+    &markers=color:red%7Clabel:Place%7C${lat},${lng}
+    &key=${environment.googleMapAPIKey}`;
   }
 }
