@@ -4,6 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { PlaceLocation } from './loaction.model';
 
 // Damy places
 // new Place(
@@ -45,6 +46,7 @@ interface PlaceData {
   price: number;
   title: string;
   userId: string;
+  location: PlaceLocation;
 }
 
 @Injectable({
@@ -75,7 +77,8 @@ export class PlacesService {
                   resData[key].price,
                   new Date(resData[key].avilableFrom),
                   new Date(resData[key].avilableTo),
-                  resData[key].userId
+                  resData[key].userId,
+                  resData[key].location
                 )
               );
             }
@@ -104,7 +107,8 @@ export class PlacesService {
               placeData.price,
               new Date(placeData.avilableFrom),
               new Date(placeData.avilableTo),
-              placeData.userId
+              placeData.userId,
+              placeData.location,
             )
         )
       );
@@ -114,7 +118,8 @@ export class PlacesService {
     description: string,
     price: number,
     fromDate: Date,
-    toDate: Date
+    toDate: Date,
+    location: PlaceLocation
   ) {
     let genratedId: string;
     const newPlace = new Place(
@@ -125,7 +130,8 @@ export class PlacesService {
       price,
       fromDate,
       toDate,
-      this.authService.userId
+      this.authService.userId,
+      location
     );
     return this.http
       .post<{ name: string }>(
@@ -174,7 +180,8 @@ export class PlacesService {
           oldPlace.price,
           oldPlace.avilableFrom,
           oldPlace.avilableTo,
-          oldPlace.userId
+          oldPlace.userId,
+          oldPlace.location
         );
         return this.http.put(
           `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${placeId}.json`,

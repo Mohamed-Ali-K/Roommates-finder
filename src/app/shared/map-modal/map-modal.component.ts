@@ -59,7 +59,7 @@ export class MapModalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.googleMaps.event.removListener(this.clickListener);
+    this.googleMaps.event.removeListener(this.clickListener);
   }
 
   private getGoogleMaps(): Promise<any> {
