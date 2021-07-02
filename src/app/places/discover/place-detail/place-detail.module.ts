@@ -8,13 +8,15 @@ import { PlaceDetailPageRoutingModule } from './place-detail-routing.module';
 
 import { PlaceDetailPage } from './place-detail.page';
 import { CreatBookingComponent } from 'src/app/bookings/creat-booking/creat-booking.component';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    PlaceDetailPageRoutingModule
+    PlaceDetailPageRoutingModule,
+    SharedModule
   ],
   declarations: [PlaceDetailPage, CreatBookingComponent],
   entryComponents: [CreatBookingComponent]
