@@ -15,4 +15,4 @@
     <ion-label>Take Picture</ion-label>
   </ion-button>
 </div>
-<input type="file"*ngIf="usePicker" #filePicker (change)="onFileChosen($event)" >
+<input accept="image/jpeg" type="file"*ngIf="usePicker" #filePicker (change)="onFileChosen($event)" >
