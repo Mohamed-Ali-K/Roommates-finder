@@ -1,4 +1,11 @@
-import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { AlertController, Platform } from '@ionic/angular';
@@ -16,7 +23,10 @@ export class ImagePickerComponent implements OnInit {
   constructor(private alertCtrl: AlertController, private platform: Platform) {}
 
   ngOnInit() {
-    if ((this.platform.is('mobile') && !this.platform.is('hybrid')) || this.platform.is('desktop')) {
+    if (
+      (this.platform.is('mobile') && !this.platform.is('hybrid')) ||
+      this.platform.is('desktop')
+    ) {
       this.usePicker = true;
     }
   }
@@ -26,22 +36,25 @@ export class ImagePickerComponent implements OnInit {
       this.filePickerRef.nativeElement.click();
       return;
     }
-     Camera.getPhoto({
+    Camera.getPhoto({
       quality: 70,
       source: CameraSource.Prompt,
       correctOrientation: true,
       height: 1280,
       width: 720,
-      resultType: CameraResultType.DataUrl
+      resultType: CameraResultType.DataUrl,
     })
-    .then(image => {
-      this.selectedImage = image.dataUrl;
-      this.imagePick.emit(image.dataUrl);
-    })
-    .catch(error => {
-      console.log(error);
-      return false;
-    });
+      .then((image) => {
+        this.selectedImage = image.dataUrl;
+        this.imagePick.emit(image.dataUrl);
+      })
+      .catch((error) => {
+        console.log(error);
+        if (this.usePicker) {
+          this.filePickerRef.nativeElement.click();
+        }
+        return false;
+      });
   }
   onFileChosen(event: Event) {
     const pikedFile = (event.target as HTMLInputElement).files[0];
@@ -49,7 +62,7 @@ export class ImagePickerComponent implements OnInit {
       return;
     }
     const fr = new FileReader();
-    fr.onload = () =>{
+    fr.onload = () => {
       const dataUrl = fr.result.toString();
       this.selectedImage = dataUrl;
       this.imagePick.emit(pikedFile);

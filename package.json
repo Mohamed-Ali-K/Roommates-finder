@@ -29,6 +29,7 @@
     "@capacitor/status-bar": "1.0.1",
     "@ionic-native/geolocation": "^5.34.0",
     "@ionic/angular": "^5.5.2",
+    "@ionic/pwa-elements": "^3.0.2",
     "cordova-plugin-geolocation": "^4.1.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
