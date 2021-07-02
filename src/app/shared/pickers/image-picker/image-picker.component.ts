@@ -1,7 +1,7 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
-import { AlertController } from '@ionic/angular';
+import { AlertController, Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-image-picker',
@@ -9,19 +9,25 @@ import { AlertController } from '@ionic/angular';
   styleUrls: ['./image-picker.component.scss'],
 })
 export class ImagePickerComponent implements OnInit {
+  @ViewChild('filePicker') filePickerRef: ElementRef<HTMLInputElement>;
   @Output() imagePick = new EventEmitter<string>();
   selectedImage: string;
-  constructor(private alertCtrl: AlertController) {}
+  usePicker = false;
+  constructor(private alertCtrl: AlertController, private platform: Platform) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    if ((this.platform.is('mobile') && !this.platform.is('hybrid')) || this.platform.is('desktop')) {
+      this.usePicker = true;
+    }
+  }
 
   onPickImage() {
-    if (!Capacitor.isPluginAvailable('Camera')) {
-      this.showErrorAlert();
+    if (!Capacitor.isPluginAvailable('Camera') || this.usePicker) {
+      this.filePickerRef.nativeElement.click();
       return;
     }
      Camera.getPhoto({
-      quality: 7,
+      quality: 70,
       source: CameraSource.Prompt,
       correctOrientation: true,
       height: 1280,
@@ -37,15 +43,7 @@ export class ImagePickerComponent implements OnInit {
       return false;
     });
   }
-  private showErrorAlert() {
-    this.alertCtrl
-      .create({
-        header: 'Could not open Camera',
-        message: 'Please wait a seconde',
-        buttons: ['Okay']
-      })
-      .then((alertEl) => {
-        alertEl.present();
-      });
+  onFileChosen(event: Event) {
+    console.log(event);
   }
 }
