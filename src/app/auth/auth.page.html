@@ -68,7 +68,7 @@
             expand="block"
             [disabled]="!f.valid"
           >
-            Login
+            {{isLoading ? 'Login' : 'Signup' }}
           </ion-button>
         </ion-col>
       </ion-row>
