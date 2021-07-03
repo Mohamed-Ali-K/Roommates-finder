@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Storage } from '@capacitor/storage';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, from } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { User } from './user.modal';
@@ -48,6 +48,39 @@ export class AuthService {
   }
   constructor(private router: Router, private http: HttpClient) {}
 
+  autoLogin() {
+    return from(Storage.get({ key: 'authData' })).pipe(
+      map((storedData) => {
+        if (!storedData || !storedData.value) {
+          return null;
+        }
+        const parsedData = JSON.parse(storedData.value) as {
+          userId: string;
+          token: string;
+          tokenExpeirationDate: string;
+          email: string;
+        };
+        const expirationTime = new Date(parsedData.tokenExpeirationDate);
+        if (expirationTime <= new Date()) {
+          return null;
+        }
+        const user = new User(
+          parsedData.email,
+          parsedData.userId,
+          parsedData.token,
+          expirationTime
+        );
+        return user;
+      }),
+      tap(user =>{
+        if (user) {
+          this._user.next(user);
+        }
+      }),
+      map(user =>!!user)
+    );
+  }
+
   singup(email: string, password: string) {
     return this.http
       .post<AuthResponseData>(
@@ -81,10 +114,20 @@ export class AuthService {
         exparationTime
       )
     );
-    this.storeAuthData(userData.localId, userData.idToken, exparationTime.toISOString());
+    this.storeAuthData(
+      userData.localId,
+      userData.idToken,
+      exparationTime.toISOString(),
+      userData.email
+    );
   }
-  private storeAuthData(userId: string, token: string, tokenExpeirationDate: string) {
-    const data = JSON.stringify({userId, token, tokenExpeirationDate});
-    Storage.set({key:'authData', value: data});
+  private storeAuthData(
+    userId: string,
+    token: string,
+    tokenExpeirationDate: string,
+    email: string
+  ) {
+    const data = JSON.stringify({ userId, token, tokenExpeirationDate, email });
+    Storage.set({ key: 'authData', value: data });
   }
 }
