@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
@@ -123,40 +124,39 @@ export class PlacesService {
     imageUrl: string
   ) {
     let genratedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      imageUrl,
-      price,
-      fromDate,
-      toDate,
-      this.authService.userId,
-      location
+    let newPlace: Place;
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap((userId) => {
+        if (!userId) {
+          throw new Error('No user Found!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          imageUrl,
+          price,
+          fromDate,
+          toDate,
+          userId,
+          location
+        );
+        return this.http.post<{ name: string }>(
+          'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json',
+          { ...newPlace, id: null }
+        );
+      }),
+      switchMap((resData) => {
+        genratedId = resData.name;
+        return this.places;
+      }),
+      take(1),
+      tap((places) => {
+        newPlace.id = genratedId;
+        this._places.next(places.concat(newPlace));
+      })
     );
-    return this.http
-      .post<{ name: string }>(
-        'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json',
-        { ...newPlace, id: null }
-      )
-      .pipe(
-        switchMap((resData) => {
-          genratedId = resData.name;
-          return this.places;
-        }),
-        take(1),
-        tap((places) => {
-          newPlace.id = genratedId;
-          this._places.next(places.concat(newPlace));
-        })
-      );
-    // return this.places.pipe(
-    //   take(1),
-    //   delay(1000),
-    //   tap((places) => {
-    //     this._places.next(places.concat(newPlace));
-    //   })
-    // );
   }
   updatePlace(placeId: string, title: string, description: string) {
     let updatesplaces: Place[];
