@@ -3,7 +3,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { User } from './user.modal';
 
 export interface AuthResponseData {
   idToken: string;
@@ -18,14 +21,29 @@ export interface AuthResponseData {
   providedIn: 'root',
 })
 export class AuthService {
-  private _userIsAuthenticade = false;
-  private _userId = null;
+  private _user = new BehaviorSubject<User>(null);
 
   get userIsAuthenticated() {
-    return this._userIsAuthenticade;
+    return this._user.asObservable().pipe(
+      map((user) => {
+        if (user) {
+          return !!user.token;
+        } else {
+          return false;
+        }
+      })
+    );
   }
   get userId() {
-    return this._userId;
+    return this._user.asObservable().pipe(
+      map((user) => {
+        if (user) {
+          return user.id;
+        } else {
+          return null;
+        }
+      })
+    );
   }
   constructor(private router: Router, private http: HttpClient) {}
 
@@ -43,7 +61,7 @@ export class AuthService {
     );
   }
   logout() {
-    this._userIsAuthenticade = false;
+    this._user.next(null);
     this.router.navigateByUrl('/auth');
   }
 }
