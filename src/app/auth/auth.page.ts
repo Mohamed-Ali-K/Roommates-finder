@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
-import { AuthService } from './auth.service';
+import { Observable } from 'rxjs';
+import { AuthResponseData, AuthService } from './auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -21,13 +22,18 @@ export class AuthPage implements OnInit {
 
   ngOnInit() {}
   authenticate(email: string, password: string) {
-    this.authService.login();
     this.isLoading = true;
     this.loadingCtrl
       .create({ keyboardClose: true, message: 'login in...' })
       .then((loadingEl) => {
         loadingEl.present();
-        this.authService.singup(email, password).subscribe(resData =>{
+        let authObs: Observable<AuthResponseData>;
+        if (this.isLogin) {
+          authObs = this.authService.login(email, password);
+        } else {
+          authObs = this.authService.singup(email, password);
+        }
+        authObs.subscribe(resData =>{
           this.isLoading = false;
           loadingEl.dismiss();
           this.router.navigateByUrl('/places/tabs/discover');
@@ -36,7 +42,11 @@ export class AuthPage implements OnInit {
           const code = errRes.error.error.message;
           let message ='Could not sign you up please try again.';
           if (code === 'EMAIL_EXISTS') {
-            message = 'This Email adress already exists!';
+            message = 'The email address is already in use by another account.';
+          } else if (code === 'EMAIL_NOT_FOUND') {
+            message = 'There is no user record corresponding to this identifier. The user may have been deleted';
+          } else if (code === 'INVALID_PASSWORD') {
+            message = 'The password is invalid or the user does not have a password.';
           }
           this.showAlert(message);
         });
