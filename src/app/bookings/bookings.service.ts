@@ -91,11 +91,15 @@ export class BookingService {
       );
   }
   fetchBookings() {
-    return this.http
+    return this.authService.userId.pipe(switchMap(userId =>{
+      if (!userId) {
+        throw new Error('Could Not Found User!');
+      }
+      return this.http
       .get<{ [key: string]: BookingData }>(
-        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`
-      )
-      .pipe(
+        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${userId}"`
+      );
+    }),
         map((bookingData) => {
           const bookings = [];
           for (const key in bookingData) {
