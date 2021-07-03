@@ -108,7 +108,7 @@ export class PlacesService {
               new Date(placeData.avilableFrom),
               new Date(placeData.avilableTo),
               placeData.userId,
-              placeData.location,
+              placeData.location
             )
         )
       );
@@ -119,14 +119,15 @@ export class PlacesService {
     price: number,
     fromDate: Date,
     toDate: Date,
-    location: PlaceLocation
+    location: PlaceLocation,
+    imageUrl: string
   ) {
     let genratedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
       description,
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Paris_Night.jpg/1024px-Paris_Night.jpg',
+      imageUrl,
       price,
       fromDate,
       toDate,
@@ -191,6 +192,14 @@ export class PlacesService {
       tap(() => {
         this._places.next(updatesplaces);
       })
+    );
+  }
+  uploadImage(image: File) {
+    const uploadData = new FormData();
+    uploadData.append('image', image);
+    return this.http.post<{ imageUrl: string; imagePath: string }>(
+      'https://us-central1-roommatefinder-23af6.cloudfunctions.net/storeImage',
+      uploadData
     );
   }
 }
