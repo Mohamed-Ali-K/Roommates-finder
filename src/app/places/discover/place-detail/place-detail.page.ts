@@ -49,13 +49,18 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       }
       this.isLoading = true;
       let fetchedUserId: string;
-      this.authService.userId.pipe(switchMap(userId =>{
-        if (!userId) {
-          throw new Error('User Not found!');
-        } fetchedUserId = userId;
-        return  this.placesService
-        .getPlace(paramMap.get('placeId'));
-      })).subscribe(
+      this.authService.userId
+        .pipe(
+          take(1),
+          switchMap((userId) => {
+            if (!userId) {
+              throw new Error('User Not found!');
+            }
+            fetchedUserId = userId;
+            return this.placesService.getPlace(paramMap.get('placeId'));
+          })
+        )
+        .subscribe(
           (place) => {
             this.place = place;
             this.isBookeble = place.userId !== fetchedUserId;

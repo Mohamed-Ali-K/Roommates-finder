@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable object-shorthand */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Storage } from '@capacitor/storage';
 import { BehaviorSubject, from } from 'rxjs';
@@ -9,7 +9,7 @@ import { map, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { User } from './user.modal';
 
-export interface AuthResponseData {
+export interface AuthResponseData{
   idToken: string;
   email: string;
   refreshToken: string;
@@ -21,8 +21,9 @@ export interface AuthResponseData {
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService  implements OnDestroy {
   private _user = new BehaviorSubject<User>(null);
+  private activeLogoutTimer: any;
 
   get userIsAuthenticated() {
     return this._user.asObservable().pipe(
@@ -75,10 +76,20 @@ export class AuthService {
       tap(user =>{
         if (user) {
           this._user.next(user);
+          this.autoLogout(user.tokenDuration);
         }
       }),
       map(user =>!!user)
     );
+  }
+
+  autoLogout( duration: number) {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
+   this.activeLogoutTimer = setTimeout(()=>{
+      this.logout();
+    }, duration);
   }
 
   singup(email: string, password: string) {
@@ -99,21 +110,31 @@ export class AuthService {
       .pipe(tap(this.setUserData.bind(this)));
   }
   logout() {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
     this._user.next(null);
-    this.router.navigateByUrl('/auth');
+    Storage.remove({key: 'authData'});
+  }
+
+  ngOnDestroy() {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
   }
   private setUserData(userData: AuthResponseData) {
     const exparationTime = new Date(
       new Date().getTime() + +userData.expiresIn * 1000
     );
-    this._user.next(
-      new User(
-        userData.localId,
-        userData.email,
-        userData.idToken,
-        exparationTime
-      )
+    const user =    new User(
+      userData.localId,
+      userData.email,
+      userData.idToken,
+      exparationTime
     );
+    this._user.next(user
+    );
+    this.autoLogout(user.tokenDuration);
     this.storeAuthData(
       userData.localId,
       userData.idToken,
@@ -130,4 +151,6 @@ export class AuthService {
     const data = JSON.stringify({ userId, token, tokenExpeirationDate, email });
     Storage.set({ key: 'authData', value: data });
   }
+
+
 }
