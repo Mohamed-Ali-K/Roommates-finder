@@ -42,16 +42,20 @@ export class BookingService {
   ) {
     let generatedId: string;
     let newBooking: Booking;
+    let fetchedUserId: string;
     return this.authService.userId.pipe(
       take(1),
       switchMap((userId) => {
         if (!userId) {
           throw new Error('No user id Found!');
         }
+        fetchedUserId = userId;
+        return this.authService.token;
+      }),take(1), switchMap(token =>{
         newBooking = new Booking(
           Math.random().toString(),
           placeId,
-          userId,
+          fetchedUserId,
           placeTitle,
           placeImage,
           firstName,
@@ -61,7 +65,7 @@ export class BookingService {
           dateTo
         );
         return this.http.post<{ name: string }>(
-          'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json',
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?auth=${token}`,
           { ...newBooking, id: null }
         );
       }),
@@ -78,11 +82,10 @@ export class BookingService {
   }
 
   cancelBooking(bookingId: string) {
-    return this.http
+    return this.authService.token.pipe(take(1), switchMap(token=> this.http
       .delete(
-        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings/${bookingId}.json`
-      )
-      .pipe(
+        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings/${bookingId}.json?auth=${token}`
+      )),
         switchMap(() => this.bookings),
         take(1),
         tap((bookings) => {
@@ -91,15 +94,18 @@ export class BookingService {
       );
   }
   fetchBookings() {
+    let fetchedUserId: string;
     return this.authService.userId.pipe(take(1),switchMap(userId =>{
       if (!userId) {
         throw new Error('Could Not Found User!');
       }
-      return this.http
+      fetchedUserId=userId;
+      return this.authService.token;
+
+    }),take(1), switchMap(token =>this.http
       .get<{ [key: string]: BookingData }>(
-        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${userId}"`
-      );
-    }),
+        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${fetchedUserId}"&auth=${token}`
+      )),
         map((bookingData) => {
           const bookings = [];
           for (const key in bookingData) {

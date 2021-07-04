@@ -6,6 +6,7 @@ import { Place } from './place.model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { PlaceLocation } from './loaction.model';
+import { stringify } from '@angular/compiler/src/util';
 
 // Damy places
 // new Place(
@@ -60,59 +61,61 @@ export class PlacesService {
   }
   constructor(private authService: AuthService, private http: HttpClient) {}
   fetchPlaces() {
-    return this.http
-      .get<{ [key: string]: PlaceData }>(
-        'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json'
-      )
-      .pipe(
-        map((resData) => {
-          const places = [];
-          for (const key in resData) {
-            if (resData.hasOwnProperty(key)) {
-              places.push(
-                new Place(
-                  key,
-                  resData[key].title,
-                  resData[key].description,
-                  resData[key].imageUrl,
-                  resData[key].price,
-                  new Date(resData[key].avilableFrom),
-                  new Date(resData[key].avilableTo),
-                  resData[key].userId,
-                  resData[key].location
-                )
-              );
-            }
+    return this.authService.token.pipe(take(1),
+      switchMap((token) =>
+        this.http.get<{ [key: string]: PlaceData }>(
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json?=auth=${token}`
+        )
+      ),
+      map((resData) => {
+        const places = [];
+        for (const key in resData) {
+          if (resData.hasOwnProperty(key)) {
+            places.push(
+              new Place(
+                key,
+                resData[key].title,
+                resData[key].description,
+                resData[key].imageUrl,
+                resData[key].price,
+                new Date(resData[key].avilableFrom),
+                new Date(resData[key].avilableTo),
+                resData[key].userId,
+                resData[key].location
+              )
+            );
           }
-          return places;
-        }),
-        tap((places) => {
-          this._places.next(places);
-        })
-      );
+        }
+        return places;
+      }),
+      tap((places) => {
+        this._places.next(places);
+      })
+    );
   }
 
   getPlace(id: string) {
-    return this.http
-      .get<PlaceData>(
-        `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${id}.json`
-      )
-      .pipe(
-        map(
-          (placeData) =>
-            new Place(
-              id,
-              placeData.title,
-              placeData.description,
-              placeData.imageUrl,
-              placeData.price,
-              new Date(placeData.avilableFrom),
-              new Date(placeData.avilableTo),
-              placeData.userId,
-              placeData.location
-            )
+    return this.authService.token.pipe(take(1),
+      switchMap((token) =>
+        this.http.get<PlaceData>(
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${id}.json?auth=${token}`
         )
-      );
+      ),
+      map(
+        (placeData) =>
+          new Place(
+            id,
+            placeData.title,
+            placeData.description,
+            placeData.imageUrl,
+            placeData.price,
+            new Date(placeData.avilableFrom),
+            new Date(placeData.avilableTo),
+            placeData.userId,
+            placeData.location
+          )
+      )
+    );
   }
   addPlace(
     title: string,
@@ -124,11 +127,15 @@ export class PlacesService {
     imageUrl: string
   ) {
     let genratedId: string;
+    let fetchedUserId: string;
     let newPlace: Place;
     return this.authService.userId.pipe(
-      take(1),
-      switchMap((userId) => {
-        if (!userId) {
+      take(1),switchMap(userId =>{
+        fetchedUserId= userId;
+        return this.authService.token;
+      }),take(1),
+      switchMap((token) => {
+        if (!fetchedUserId) {
           throw new Error('No user Found!');
         }
         newPlace = new Place(
@@ -139,11 +146,11 @@ export class PlacesService {
           price,
           fromDate,
           toDate,
-          userId,
+          fetchedUserId,
           location
         );
         return this.http.post<{ name: string }>(
-          'https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json',
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places.json?auth=${token}`,
           { ...newPlace, id: null }
         );
       }),
@@ -160,7 +167,11 @@ export class PlacesService {
   }
   updatePlace(placeId: string, title: string, description: string) {
     let updatesplaces: Place[];
-    return this.places.pipe(
+    let fetchedToken: string;
+    return this.authService.token.pipe(take(1), switchMap(token=>{
+      fetchedToken = token;
+      return this.places;
+    }),
       take(1),
       switchMap((places) => {
         if (!places || places.length < 0) {
@@ -185,7 +196,7 @@ export class PlacesService {
           oldPlace.location
         );
         return this.http.put(
-          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${placeId}.json`,
+          `https://roommatefinder-23af6-default-rtdb.europe-west1.firebasedatabase.app/offerd-places/${placeId}.json?auth=${fetchedToken}`,
           { ...updatesplaces[updatePlaceIndex], id: null }
         );
       }),
@@ -197,9 +208,13 @@ export class PlacesService {
   uploadImage(image: File) {
     const uploadData = new FormData();
     uploadData.append('image', image);
-    return this.http.post<{ imageUrl: string; imagePath: string }>(
-      'https://us-central1-roommatefinder-23af6.cloudfunctions.net/storeImage',
-      uploadData
+    return this.authService.token.pipe(take(1),
+      switchMap((token) =>
+        this.http.post<{ imageUrl: string; imagePath: string }>(
+          'https://us-central1-roommatefinder-23af6.cloudfunctions.net/storeImage',
+          uploadData, {headers: {Authorization: 'Bearer ' + token}}
+        )
+      )
     );
   }
 }

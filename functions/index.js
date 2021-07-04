@@ -24,13 +24,13 @@ exports.storeImage = functions.https.onRequest((req, res) => {
 
     if (
       !req.headers.authorization ||
-      !req.headers.authorization.startsWith("Bearer ")
+      !req.headers.authorization.startsWith('Bearer ')
     ) {
       return res.status(401).json({ error: "Unauthorized!" });
     }
 
     let idToken;
-    idToken = req.headers.authorization.split("Bearer")[1];
+    idToken = req.headers.authorization.split('Bearer ')[1];
     const busboy = new Busboy({ headers: req.headers });
     let uploadData;
     let oldImagePath;
