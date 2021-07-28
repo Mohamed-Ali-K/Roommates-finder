@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  googleMapAPIKey: 'AIzaSyAIoefFgnmDyUG9JiicAbt36ABq4Upvi1c',
-  firebaseAPIKey : 'AIzaSyAIoefFgnmDyUG9JiicAbt36ABq4Upvi1c'
+  googleMapAPIKey: 'AIzaSyDLX-7_-JGWLwuBb6dpCKIdvU-kNYDMoAw',
+  firebaseAPIKey : 'AIzaSyDLX-7_-JGWLwuBb6dpCKIdvU-kNYDMoAw'
 };
