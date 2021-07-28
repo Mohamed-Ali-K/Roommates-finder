@@ -12,10 +12,11 @@ const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({
   projectId: "roommatefinder-23af6",
 });
-
+// fb
 fbAdmin.initializeApp({
   credential: fbAdmin.credential.cert(require("./roommatefinder.json")),
 });
+// fb
 exports.storeImage = functions.https.onRequest((req, res) => {
   return cors(req, res, () => {
     if (req.method !== "POST") {
