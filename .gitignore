@@ -30,4 +30,5 @@ npm-debug.log*
 /plugins
 /www
 /environments
-
+/__MACOSX
+functions/roommatefinder.json
